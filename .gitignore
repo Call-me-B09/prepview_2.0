@@ -1,3 +1,4 @@
 # Ignore environment variables file
 Backend/.env
 .env
+Backend/OCR_Service/.env
