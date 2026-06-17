@@ -1,4 +1,4 @@
-import GetSessionService from "../../services/sessiongetservice.js";
+import GetSessionService from "../services/sessiongetservice.js";
 
 const getusersessions = async (req, res) => {
     try {

@@ -1,4 +1,4 @@
-import UpdateSessionService from "../../services/sessionupdateservice.js";
+import UpdateSessionService from "../services/sessionupdateservice.js";
 
 const updatesession = async (req, res) => {
     try {

@@ -1,4 +1,4 @@
-import CreateSessionService from "../../services/sessioncreateservice.js";
+import CreateSessionService from "../services/sessioncreateservice.js";
 
 const createsession = async (req, res) => {
     try {

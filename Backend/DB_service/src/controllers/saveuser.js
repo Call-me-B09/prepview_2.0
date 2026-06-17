@@ -1,4 +1,4 @@
-import CreateUserService from "../../services/usercreateservice.js";
+import CreateUserService from "../services/usercreateservice.js";
 
 
 

@@ -1,4 +1,4 @@
-import GetSessionByIdService from "../../services/sessiongetbyidservice.js";
+import GetSessionByIdService from "../services/sessiongetbyidservice.js";
 
 const getsessionbyid = async (req, res) => {
     try {
