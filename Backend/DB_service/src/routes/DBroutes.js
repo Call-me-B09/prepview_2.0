@@ -11,6 +11,7 @@ import getquestionbyid from "../controllers/getquestionbyid.js";
 import updatequestionanswer from "../controllers/updatequestionanswer.js";
 import updatequestionfollowupanswer from "../controllers/updatequestionfollowupanswer.js";
 import updatequestionevaluation from "../controllers/updatequestionevaluation.js";
+import updatequestion from "../controllers/updatequestion.js";
 
 
 
@@ -37,5 +38,7 @@ router.patch("/updateQuestionFollowUpAnswer/:questionId",updatequestionfollowupa
 router.patch("/updateQuestionFollowUpAnswer",updatequestionfollowupanswer);
 router.patch("/updateQuestionEvaluation/:questionId",updatequestionevaluation);
 router.patch("/updateQuestionEvaluation",updatequestionevaluation);
+router.patch("/updateQuestion/:questionId",updatequestion);
+router.patch("/updateQuestion",updatequestion);
 
 export default router;

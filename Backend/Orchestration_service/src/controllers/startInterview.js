@@ -2,7 +2,7 @@ import { extractResumeText } from "../services/ocrService.js";
 import { createSession, saveQuestion } from "../services/dbService.js";
 import { generateQuestions } from "../services/aiService.js";
 
-export const startInterview = async (req, res) => {
+const startInterview = async (req, res) => {
     try {
         const { role, uid } = req.body;
         const file = req.file;
@@ -19,20 +19,10 @@ export const startInterview = async (req, res) => {
 
         console.log(`Starting interview orchestration for uid: ${uid}, role: ${role}`);
 
-        // 1. Extract text from resume via OCR Service
-        console.log("Calling OCR service to extract text...");
         const resumeText = await extractResumeText(file);
-        
-        // 2. Create session via DB Service
-        console.log("Creating session in DB service...");
         const sessionId = await createSession(uid, role);
-
-        // 3. Generate questions via AI Service
-        console.log("Generating questions via AI service...");
         const questions = await generateQuestions(role, resumeText);
 
-        // 4. Save generated questions via DB Service
-        console.log(`Saving ${questions.length} questions in DB service...`);
         await Promise.all(
             questions.map(question => saveQuestion(sessionId, question))
         );
@@ -52,3 +42,5 @@ export const startInterview = async (req, res) => {
         });
     }
 };
+
+export default startInterview;
