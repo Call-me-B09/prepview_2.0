@@ -78,3 +78,72 @@ export async function updateQuestion(questionId, updateData) {
 
     return await response.json();
 }
+
+export async function getSession(sessionId) {
+    const dbUrl = `${process.env.DB_SERVICE_URL}/db/getSession/${sessionId}`;
+
+    const response = await fetch(dbUrl, {
+        method: "GET"
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`DB service getSession failed with status ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
+}
+
+export async function getQuestionsForSession(sessionId) {
+    const dbUrl = `${process.env.DB_SERVICE_URL}/db/getQuestions/${sessionId}`;
+
+    const response = await fetch(dbUrl, {
+        method: "GET"
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`DB service getQuestions failed with status ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
+}
+
+export async function updateSession(sessionId, overallScore, recommendations) {
+    const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateSession/${sessionId}`;
+
+    const response = await fetch(dbUrl, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ overallScore, recommendations })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`DB service updateSession failed with status ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
+}
+
+export async function updateQuestionEvaluation(questionId, evaluationData) {
+    const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateQuestionEvaluation/${questionId}`;
+
+    const response = await fetch(dbUrl, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(evaluationData)
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`DB service updateQuestionEvaluation failed with status ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
+}
+
