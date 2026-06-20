@@ -1,6 +1,7 @@
 import { extractResumeText } from "../services/ocrService.js";
 import { createSession, saveQuestion } from "../services/dbService.js";
 import { generateQuestions } from "../services/aiService.js";
+import { generateSpeech } from "../services/ttsService.js";
 
 const startInterview = async (req, res) => {
     try {
@@ -23,15 +24,38 @@ const startInterview = async (req, res) => {
         const sessionId = await createSession(uid, role);
         const questions = await generateQuestions(role, resumeText);
 
-        await Promise.all(
+        const savedQuestions = await Promise.all(
             questions.map(question => saveQuestion(sessionId, question))
         );
 
+        // Generate TTS audio for each question
+        const questionsWithAudio = await Promise.all(
+            savedQuestions.map(async (savedQ) => {
+                let audio = "";
+                try {
+                    const audioBuffer = await generateSpeech(savedQ.mainQuestion);
+                    audio = audioBuffer.toString("base64");
+                } catch (ttsErr) {
+                    console.error(`Failed to generate TTS for question ${savedQ._id}:`, ttsErr);
+                }
+                return {
+                    questionId: savedQ._id,
+                    mainQuestion: savedQ.mainQuestion,
+                    audio
+                };
+            })
+        );
+
         console.log("Interview session setup successfully!");
+        console.log("Generated Questions details:");
+        questionsWithAudio.forEach((q, idx) => {
+            console.log(`  Question ${idx + 1}: ID=${q.questionId}, Text="${q.mainQuestion.substring(0, 50)}...", Audio length=${q.audio ? q.audio.length : 0}`);
+        });
+
         res.status(201).json({
             success: true,
             sessionId,
-            questions
+            questions: questionsWithAudio
         });
 
     } catch (error) {

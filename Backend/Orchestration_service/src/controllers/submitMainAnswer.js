@@ -1,6 +1,7 @@
 import { getQuestion, updateQuestion } from "../services/dbService.js";
 import { generateFollowUp } from "../services/aiService.js";
 import { transcribeAudio } from "../services/assemblyService.js";
+import { generateSpeech } from "../services/ttsService.js";
 
 const submitMainAnswer = async (req, res) => {
     try {
@@ -31,8 +32,17 @@ const submitMainAnswer = async (req, res) => {
             followUpQuestion
         });
 
+        let followUpAudio = "";
+        try {
+            const audioBuffer = await generateSpeech(followUpQuestion);
+            followUpAudio = audioBuffer.toString("base64");
+        } catch (ttsErr) {
+            console.error("Failed to generate TTS for follow-up question:", ttsErr);
+        }
+
         res.status(200).json({
-            followUpQuestion
+            followUpQuestion,
+            followUpAudio
         });
 
     } catch (error) {

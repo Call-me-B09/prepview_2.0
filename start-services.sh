@@ -29,6 +29,7 @@ COLOR_DB=$(printf '\033[1;32m')     # Bold Green
 COLOR_OCR=$(printf '\033[1;35m')    # Bold Magenta
 COLOR_ORCH=$(printf '\033[1;36m')   # Bold Cyan
 COLOR_ASSEMBLY=$(printf '\033[1;33m') # Bold Yellow
+COLOR_TTS=$(printf '\033[1;31m')     # Bold Red
 COLOR_RESET=$(printf '\033[0m')
 
 # Start each service using nodemon from its directory to ensure correct working directory context.
@@ -49,5 +50,9 @@ echo "Launching Orchestration Service..."
 echo "Launching Assembly Service..."
 (cd Backend/Assembly_service && nodemon server.js) 2>&1 | sed -u "s/^/${COLOR_ASSEMBLY}[Assembly Service]${COLOR_RESET} /" &
 
+echo "Launching TTS Service..."
+(cd Backend/TTS_Service && nodemon server.js) 2>&1 | sed -u "s/^/${COLOR_TTS}[TTS Service]${COLOR_RESET} /" &
+
 # Wait for all background services to run
 wait
+
