@@ -18,7 +18,13 @@ const submitFollowUpAnswer = async (req, res) => {
 
         console.log(`Processing follow-up answer for sessionId: ${sessionId}, questionId: ${questionId}`);
 
-        const followUpAnswer = await transcribeAudio(file);
+        let followUpAnswer = "";
+        try {
+            followUpAnswer = await transcribeAudio(file);
+        } catch (transcribeErr) {
+            console.warn("Transcription failed or audio was blank, treating as empty response:", transcribeErr.message);
+            followUpAnswer = "";
+        }
 
         await updateQuestion(questionId, {
             followUpAnswer

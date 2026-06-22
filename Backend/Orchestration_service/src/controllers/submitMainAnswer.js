@@ -20,10 +20,32 @@ const submitMainAnswer = async (req, res) => {
 
         console.log(`Processing main answer for sessionId: ${sessionId}, questionId: ${questionId}`);
 
-        const mainAnswer = await transcribeAudio(file);
+        let mainAnswer = "";
+        try {
+            mainAnswer = await transcribeAudio(file);
+        } catch (transcribeErr) {
+            console.warn("Transcription failed or audio was blank, treating as empty response:", transcribeErr.message);
+            mainAnswer = "";
+        }
 
         const questionData = await getQuestion(questionId);
         const mainQuestion = questionData.mainQuestion;
+
+        if (!mainAnswer.trim()) {
+            // Main answer is blank, skip follow-up question generation
+            const followUpQuestion = "No response provided.";
+            await updateQuestion(questionId, {
+                mainAnswer: "",
+                followUpQuestion
+            });
+
+            return res.status(200).json({
+                followUpQuestion: "",
+                followUpAudio: "",
+                hasFollowUp: false,
+                noAnswer: true
+            });
+        }
 
         const followUpQuestion = await generateFollowUp(mainQuestion, mainAnswer);
 
@@ -42,7 +64,9 @@ const submitMainAnswer = async (req, res) => {
 
         res.status(200).json({
             followUpQuestion,
-            followUpAudio
+            followUpAudio,
+            hasFollowUp: true,
+            noAnswer: false
         });
 
     } catch (error) {

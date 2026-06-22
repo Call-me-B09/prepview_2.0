@@ -1,4 +1,4 @@
-async function EvaluateSessionService(role, questions) {
+async function EvaluateSessionService(role, questions, codingData) {
     const groqKey = process.env.groq_api;
     if (!groqKey) {
         throw new Error("groq_api key is not configured in environment variables.");
@@ -20,6 +20,17 @@ Question Overall Score: ${q.overallScore !== undefined ? q.overallScore : "N/A"}
 --------------------------------------------------`;
     }).join("\n\n");
 
+    let codingContext = "";
+    if (codingData && codingData.codingProblemTitle) {
+        codingContext = `\n\nCoding Challenge Performance:
+Title: ${codingData.codingProblemTitle}
+Problem Description: ${codingData.codingProblemDescription}
+Candidate's Selected Language: ${codingData.codingLanguage}
+Candidate's Solution Code:\n${codingData.codingSolution}
+AI Code Feedback: ${codingData.codingFeedback}
+Code Score (out of 100): ${codingData.codingScore !== null ? codingData.codingScore : "N/A"}`;
+    }
+
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -31,9 +42,9 @@ Question Overall Score: ${q.overallScore !== undefined ? q.overallScore : "N/A"}
             messages: [
                 {
                     role: "system",
-                    content: `You are an expert technical recruiter and interviewer. Your task is to evaluate the candidate's overall performance across the entire interview session. 
+                    content: `You are an expert technical recruiter and interviewer. Your task is to evaluate the candidate's overall performance across the entire interview session (incorporating both the verbal conceptual questions and the coding challenge problem if provided). 
 You will be given the target Job Role and the detailed questions, candidate answers, scores, and feedbacks from the session.
-Grade the session as a whole based on technical depth, overall accuracy, communication, and growth areas.
+Grade the session as a whole based on technical depth, overall accuracy, communication, coding proficiency, and growth areas.
 Generate a concise list of actionable recommendations for the candidate to improve.
 Return the evaluation results strictly as a JSON object matching this schema:
 {
@@ -45,7 +56,7 @@ Return the evaluation results strictly as a JSON object matching this schema:
                 },
                 {
                     role: "user",
-                    content: `Job Role: ${role}\n\nInterview History:\n${formattedHistory}`
+                    content: `Job Role: ${role}\n\nInterview History:\n${formattedHistory}${codingContext}`
                 }
             ],
             response_format: { type: "json_object" }

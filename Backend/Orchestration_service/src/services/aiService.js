@@ -65,7 +65,7 @@ export async function evaluateQuestion(mainQuestion, mainAnswer, followUpQuestio
     return await response.json();
 }
 
-export async function evaluateSession(questions, role) {
+export async function evaluateSession(questions, role, codingData) {
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/evaluateSession`;
 
     const response = await fetch(aiUrl, {
@@ -73,12 +73,51 @@ export async function evaluateSession(questions, role) {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ questions, role })
+        body: JSON.stringify({ questions, role, codingData })
     });
 
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`AI service evaluateSession failed with status ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
+}
+
+export async function generateCodingQuestion(role) {
+    const aiUrl = `${process.env.AI_SERVICE_URL}/ai/generateCodingQuestion`;
+
+    const response = await fetch(aiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ role })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`AI service generateCodingQuestion failed with status ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.codingQuestion;
+}
+
+export async function evaluateCoding(codingProblem, codingLanguage, codingSolution) {
+    const aiUrl = `${process.env.AI_SERVICE_URL}/ai/evaluateCoding`;
+
+    const response = await fetch(aiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ codingProblem, codingLanguage, codingSolution })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`AI service evaluateCoding failed with status ${response.status}: ${errorText}`);
     }
 
     return await response.json();

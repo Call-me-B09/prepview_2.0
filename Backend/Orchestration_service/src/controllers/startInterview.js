@@ -1,6 +1,6 @@
 import { extractResumeText } from "../services/ocrService.js";
-import { createSession, saveQuestion } from "../services/dbService.js";
-import { generateQuestions } from "../services/aiService.js";
+import { createSession, saveQuestion, updateSessionFields } from "../services/dbService.js";
+import { generateQuestions, generateCodingQuestion } from "../services/aiService.js";
 import { generateSpeech } from "../services/ttsService.js";
 
 const startInterview = async (req, res) => {
@@ -27,6 +27,43 @@ const startInterview = async (req, res) => {
         const savedQuestions = await Promise.all(
             questions.map(question => saveQuestion(sessionId, question))
         );
+
+        // Generate Coding Question dynamically
+        let codingQuestion = null;
+        try {
+            console.log(`Generating coding challenge for role: ${role}`);
+            const rawCoding = await generateCodingQuestion(role);
+            
+            const codingIntroText = `Excellent work on the conceptual questions. For the final part of our session, I have prepared a practical coding problem matching the job role. Please review the description on the left and write your solution in the editor. You can write it in code or pseudo-code.`;
+            let codingAudio = "";
+            try {
+                const audioBuffer = await generateSpeech(codingIntroText);
+                codingAudio = audioBuffer.toString("base64");
+            } catch (ttsErr) {
+                console.error("Failed to generate TTS for coding intro:", ttsErr);
+            }
+
+            codingQuestion = {
+                title: rawCoding.title,
+                description: rawCoding.description,
+                starterCode: {
+                    "javascript": "",
+                    "python": "",
+                    "cpp": "",
+                    "java": "",
+                    "pseudocode": ""
+                },
+                audio: codingAudio
+            };
+            await updateSessionFields(sessionId, {
+                codingProblemTitle: codingQuestion.title,
+                codingProblemDescription: codingQuestion.description,
+                codingStarterCode: JSON.stringify(codingQuestion.starterCode)
+            });
+            console.log(`Saved coding challenge to session: "${codingQuestion.title}"`);
+        } catch (codingErr) {
+            console.error("Failed to generate coding question:", codingErr);
+        }
 
         // Generate Liffy introduction text and audio
         const nameVal = name || "Candidate";
@@ -70,7 +107,8 @@ const startInterview = async (req, res) => {
                 text: introText,
                 audio: introAudio
             },
-            questions: questionsWithAudio
+            questions: questionsWithAudio,
+            codingQuestion
         });
 
     } catch (error) {

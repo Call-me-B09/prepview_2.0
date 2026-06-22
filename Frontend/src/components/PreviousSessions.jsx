@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   History, ArrowLeft, ArrowRight, ChevronRight, CheckCircle2,
-  Clock, Sparkles, AlertCircle, TrendingUp, BarChart2, Loader2, X
+  Clock, Sparkles, AlertCircle, TrendingUp, BarChart2, Loader2, X, Code
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -255,6 +255,51 @@ export default function PreviousSessions({ currentUser, onNavigate }) {
                     <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
                   </button>
                 </div>
+
+                {/* Coding Challenge Block */}
+                {selectedSession.codingProblemTitle && (
+                  <div className="glassmorphic-card rounded-2xl p-5 border border-white/8 mb-6 bg-white/2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-mono font-bold text-[#E5A9A9] bg-[#E5A9A9]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Code className="w-3 h-3" /> Coding Assessment
+                      </span>
+                      {selectedSession.codingScore != null && (
+                        <span className="text-[10px] font-mono text-text-secondary ml-auto">
+                          Score: <span className="text-white font-bold">{selectedSession.codingScore}/100</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-sm font-sans font-bold text-white mb-1">
+                      {selectedSession.codingProblemTitle}
+                    </h3>
+                    <p className="text-xs text-text-secondary font-sans mb-4 leading-relaxed whitespace-pre-line">
+                      {selectedSession.codingProblemDescription}
+                    </p>
+
+                    {selectedSession.codingSolution && (
+                      <div className="mb-4">
+                        <p className="text-[10px] font-mono text-text-secondary uppercase tracking-widest mb-1.5">
+                          Submitted Solution ({selectedSession.codingLanguage})
+                        </p>
+                        <pre className="p-3.5 rounded-xl bg-[#080808] border border-white/5 font-mono text-xs text-white/95 overflow-x-auto max-h-48 leading-relaxed">
+                          <code>{selectedSession.codingSolution}</code>
+                        </pre>
+                      </div>
+                    )}
+
+                    {selectedSession.codingFeedback && (
+                      <div className="pt-3 border-t border-white/5">
+                        <p className="text-[10px] font-mono text-[#E5A9A9] uppercase tracking-widest mb-1.5">
+                          Liffy's Feedback
+                        </p>
+                        <p className="text-xs text-emerald-400/80 font-mono leading-relaxed">
+                          💡 {selectedSession.codingFeedback}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Questions */}
                 <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-text-secondary mb-4">

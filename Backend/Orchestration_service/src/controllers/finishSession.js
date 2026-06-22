@@ -73,11 +73,21 @@ const finishSession = async (req, res) => {
             evaluatedQuestions.push(updatedQuestion);
         }
 
-        // 4. Perform session-level evaluation
-        console.log(`Evaluating overall session: ${sessionId} for role: ${session.role}`);
-        const sessionEvaluation = await evaluateSession(evaluatedQuestions, session.role);
+        // 4. Extract coding information from the session if available
+        const codingData = {
+            codingProblemTitle: session.codingProblemTitle || "",
+            codingProblemDescription: session.codingProblemDescription || "",
+            codingLanguage: session.codingLanguage || "",
+            codingSolution: session.codingSolution || "",
+            codingFeedback: session.codingFeedback || "",
+            codingScore: session.codingScore !== undefined && session.codingScore !== null ? session.codingScore : null
+        };
 
-        // 5. Update session status, overall score, and recommendations in DB
+        // 5. Perform session-level evaluation incorporating coding data
+        console.log(`Evaluating overall session: ${sessionId} for role: ${session.role}`);
+        const sessionEvaluation = await evaluateSession(evaluatedQuestions, session.role, codingData);
+
+        // 6. Update session status, overall score, and recommendations in DB
         const updatedSession = await updateSession(
             sessionId,
             sessionEvaluation.overallScore,

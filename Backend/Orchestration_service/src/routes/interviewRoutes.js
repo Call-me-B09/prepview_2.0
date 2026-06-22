@@ -5,6 +5,7 @@ import submitMainAnswer from "../controllers/submitMainAnswer.js";
 import submitFollowUpAnswer from "../controllers/submitFollowUpAnswer.js";
 import finishSession from "../controllers/finishSession.js";
 import ttsController from "../controllers/ttsController.js";
+import submitCodingAnswer from "../controllers/submitCodingAnswer.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -14,5 +15,6 @@ router.post("/submitMainAnswer", upload.single("audio"), submitMainAnswer);
 router.post("/submitFollowUpAnswer", upload.single("audio"), submitFollowUpAnswer);
 router.post("/finishSession", finishSession);
 router.post("/tts", ttsController);
+router.post("/submitCodingAnswer", submitCodingAnswer);
 
 export default router;

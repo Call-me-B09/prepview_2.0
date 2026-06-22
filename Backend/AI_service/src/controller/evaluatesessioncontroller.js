@@ -3,13 +3,13 @@ import EvaluateSessionService from "../sevices/evaluatesessionservice.js";
 const evaluatesession = async (req, res) => {
     try {
         console.log("session evaluation req received");
-        const { role, questions } = req.body;
+        const { role, questions, codingData } = req.body;
 
         if (!role || !questions || !Array.isArray(questions)) {
             return res.status(400).json({ error: "role and questions (array) are required" });
         }
 
-        const evaluation = await EvaluateSessionService(role, questions);
+        const evaluation = await EvaluateSessionService(role, questions, codingData);
         res.status(200).json(evaluation);
     } catch (error) {
         console.error("Error in evaluatesession controller:", error);

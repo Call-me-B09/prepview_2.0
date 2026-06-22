@@ -147,3 +147,22 @@ export async function updateQuestionEvaluation(questionId, evaluationData) {
     return await response.json();
 }
 
+export async function updateSessionFields(sessionId, fields) {
+    const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateSession/${sessionId}`;
+
+    const response = await fetch(dbUrl, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(fields)
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`DB service updateSessionFields failed with status ${response.status}: ${errorText}`);
+    }
+
+    return await response.json();
+}
+

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Mic, Upload, ArrowLeft, ArrowRight, Sparkles,
   FileText, Briefcase, AlertCircle, CheckCircle, Loader2, X
@@ -102,6 +102,105 @@ export default function NewInterview({ currentUser, onNavigate, onInterviewStart
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-white font-sans overflow-x-hidden relative grid-bg flex items-center justify-center pt-28 pb-16 px-6">
+        {/* Ambient glows */}
+        <div className="absolute top-[15%] left-[-10%] w-[550px] h-[550px] rounded-full bg-[#E5A9A9]/4 blur-[130px] pointer-events-none z-0" />
+        <div className="absolute bottom-[10%] right-[-5%] w-[450px] h-[450px] rounded-full bg-white/2 blur-[130px] pointer-events-none z-0" />
+        <div className="absolute left-[8%] right-[8%] top-0 bottom-0 border-l border-r border-white/5 pointer-events-none z-0 hidden lg:block" />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          className="w-full max-w-md relative z-10"
+        >
+          <div className="glassmorphic-card rounded-3xl p-8 md:p-12 border border-white/8 shadow-2xl relative overflow-hidden text-center flex flex-col items-center">
+            
+            {/* Animated scan line */}
+            <motion.div
+              animate={{ y: ["0px", "320px", "0px"] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#E5A9A9]/80 to-transparent top-0 z-20 pointer-events-none"
+            />
+
+            {/* Logo Container with rotating/pulsing details */}
+            <div className="relative w-36 h-36 flex items-center justify-center mb-8">
+              
+              {/* Rotating outer gear/dashed circles */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 rounded-full border border-dashed border-white/10"
+              />
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-2 rounded-full border border-dashed border-[#E5A9A9]/15"
+              />
+
+              {/* Glowing expanding radar rings */}
+              <motion.div
+                animate={{ scale: [1, 1.4], opacity: [0.5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                className="absolute inset-0 rounded-full border border-[#E5A9A9]/30"
+              />
+              <motion.div
+                animate={{ scale: [1, 1.6], opacity: [0.3, 0] }}
+                transition={{ duration: 2, delay: 0.8, repeat: Infinity, ease: "easeOut" }}
+                className="absolute inset-0 rounded-full border border-white/10"
+              />
+
+              {/* Logo background glow */}
+              <div className="absolute w-24 h-24 rounded-full bg-gradient-to-tr from-[#E5A9A9]/5 to-transparent blur-xl" />
+
+              {/* Actual Logo Image */}
+              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-[#111111] border border-white/10 p-3 shadow-2xl relative flex items-center justify-center z-10">
+                <img
+                  src="/images/logo.png"
+                  alt="PrepView Logo"
+                  className="w-full h-full object-contain select-none animate-pulse"
+                />
+              </div>
+
+            </div>
+
+            {/* Title & Animated Status text */}
+            <h2 className="text-xl md:text-2xl font-display font-black text-white tracking-tight mb-2">
+              Preparing Liffy Room
+            </h2>
+            <p className="text-[#E5A9A9] text-xs font-mono font-bold tracking-widest uppercase mb-6 animate-pulse">
+              AI Initialization
+            </p>
+
+            {/* Simulated progress bar */}
+            <div className="w-full bg-white/5 rounded-full h-1 mb-8 overflow-hidden relative">
+              <motion.div
+                className="h-full gradient-primary"
+                initial={{ width: "0%" }}
+                animate={{ 
+                  width: ["0%", "15%", "40%", "65%", "85%", "95%"],
+                }}
+                transition={{ 
+                  duration: 9,
+                  ease: "easeInOut",
+                  repeat: Infinity
+                }}
+              />
+            </div>
+
+            {/* Cycling system logs */}
+            <div className="h-6 font-mono text-xs text-text-secondary select-none">
+              <LoadingTextCycler />
+            </div>
+
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-sans overflow-x-hidden relative grid-bg flex items-start justify-center pt-28 pb-16 px-6">
@@ -413,5 +512,39 @@ export default function NewInterview({ currentUser, onNavigate, onInterviewStart
         </div>
       </motion.div>
     </div>
+  );
+}
+
+function LoadingTextCycler() {
+  const messages = [
+    "Reading resume profile details...",
+    "Scanning skills & project experience...",
+    "Cross-referencing target job role...",
+    "Configuring AI Liffy interviewer context...",
+    "Crafting bespoke interview questions...",
+    "Synthesizing speech prompts for the session...",
+    "Opening secure audio communication line...",
+    "Finalizing interview room setup..."
+  ];
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex(prev => (prev + 1) % messages.length);
+    }, 1800);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <motion.span
+      key={index}
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -5 }}
+      transition={{ duration: 0.25 }}
+      className="inline-block font-mono text-[#E5A9A9]/80"
+    >
+      {messages[index]}
+    </motion.span>
   );
 }

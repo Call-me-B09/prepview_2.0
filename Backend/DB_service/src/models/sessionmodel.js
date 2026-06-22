@@ -20,6 +20,27 @@ const sessionSchema = new mongoose.Schema(
     recommendations: {
       type: [String],
       default: []
+    },
+    codingProblemTitle: {
+      type: String
+    },
+    codingProblemDescription: {
+      type: String
+    },
+    codingStarterCode: {
+      type: String // Stores JSON string of starter templates per language
+    },
+    codingLanguage: {
+      type: String
+    },
+    codingSolution: {
+      type: String
+    },
+    codingFeedback: {
+      type: String
+    },
+    codingScore: {
+      type: Number
     }
   }
 );

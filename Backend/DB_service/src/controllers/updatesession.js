@@ -3,17 +3,13 @@ import UpdateSessionService from "../services/sessionupdateservice.js";
 const updatesession = async (req, res) => {
     try {
         const sessionId = req.params.sessionId || req.query.sessionId || req.body.sessionId;
-        const { overallScore, recommendations } = req.body;
+        const updates = req.body;
 
         if (!sessionId) {
             return res.status(400).json({ error: "sessionId is required" });
         }
 
-        if (overallScore === undefined || !recommendations) {
-            return res.status(400).json({ error: "overallScore and recommendations are required" });
-        }
-
-        const session = await UpdateSessionService(sessionId, overallScore, recommendations);
+        const session = await UpdateSessionService(sessionId, updates);
         if (!session) {
             return res.status(404).json({ error: "Session not found" });
         }
