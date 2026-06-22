@@ -1,0 +1,20 @@
+John Doe
+Software Engineer
+Email: john.doe@example.com
+Phone: (123) 456-7890
+
+Summary:
+Experienced Software Engineer with a strong background in developing scalable web applications. Proficient in JavaScript, React, Node.js, and database management.
+
+Experience:
+- Senior Software Engineer at Tech Corp (2020 - Present)
+  * Developed and maintained microservices using Node.js and Express.
+  * Built dynamic and responsive frontends using React and Redux.
+- Software Developer at Dev Studio (2018 - 2020)
+  * Worked on full-stack web applications.
+  * Improved database performance by optimizing queries.
+
+Skills:
+- Languages: JavaScript, HTML, CSS, SQL
+- Frameworks/Libraries: React, Node.js, Express, Next.js
+- Tools: Git, Docker, AWS

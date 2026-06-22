@@ -111,7 +111,7 @@ export default function Hero({ currentUser, onNavigate }) {
               <button
                 onClick={() => {
                   if (currentUser) {
-                    alert(`Welcome back, ${currentUser.name}! Directing you to your mock interview workspace...`);
+                    onNavigate('dashboard');
                   } else {
                     onNavigate('login');
                   }

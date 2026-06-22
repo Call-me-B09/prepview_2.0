@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Lock, ArrowLeft, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Login({ onClose, onLoginSuccess }) {
+export default function Login({ onClose, onLoginSuccess, onNavigate }) {
   const [isLoginTab, setIsLoginTab] = useState(true);
   
   // Form states
@@ -147,7 +147,11 @@ export default function Login({ onClose, onLoginSuccess }) {
 
       localStorage.setItem('prepview_current_user', JSON.stringify(sessionData));
       onLoginSuccess(sessionData);
-      onClose();
+      if (onNavigate) {
+        onNavigate('dashboard');
+      } else {
+        onClose();
+      }
     } catch (err) {
       console.error(err);
       setError('Connection failed. Make sure DB_service backend is running.');

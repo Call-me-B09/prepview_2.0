@@ -5,7 +5,7 @@ import { generateSpeech } from "../services/ttsService.js";
 
 const startInterview = async (req, res) => {
     try {
-        const { role, uid } = req.body;
+        const { role, uid, name } = req.body;
         const file = req.file;
 
         if (!role) {
@@ -27,6 +27,17 @@ const startInterview = async (req, res) => {
         const savedQuestions = await Promise.all(
             questions.map(question => saveQuestion(sessionId, question))
         );
+
+        // Generate Liffy introduction text and audio
+        const nameVal = name || "Candidate";
+        const introText = `Hello ${nameVal}! I am Liffy, your AI interviewer today. I have reviewed your resume and generated some personalized questions for the ${role} position. Let's get started!`;
+        let introAudio = "";
+        try {
+            const audioBuffer = await generateSpeech(introText);
+            introAudio = audioBuffer.toString("base64");
+        } catch (ttsErr) {
+            console.error("Failed to generate TTS for introduction:", ttsErr);
+        }
 
         // Generate TTS audio for each question
         const questionsWithAudio = await Promise.all(
@@ -55,6 +66,10 @@ const startInterview = async (req, res) => {
         res.status(201).json({
             success: true,
             sessionId,
+            introduction: {
+                text: introText,
+                audio: introAudio
+            },
             questions: questionsWithAudio
         });
 

@@ -45,26 +45,44 @@ export default function Navbar({ currentUser, onLogout, onNavigate }) {
           </span>
         </a>
 
-        {/* Desktop Nav Links - Swiss Grid Aligned */}
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-sm font-sans font-medium text-text-secondary hover:text-white transition-colors duration-200"
-            >
-              {link.name}
-            </a>
-          ))}
-        </nav>
+        {/* Desktop Nav Links — only shown to logged-out visitors */}
+        {!currentUser && (
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-sm font-sans font-medium text-text-secondary hover:text-white transition-colors duration-200"
+              >
+                {link.name}
+              </a>
+            ))}
+          </nav>
+        )}
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-4">
           {currentUser ? (
             <>
-              <span className="text-sm font-sans font-semibold text-white">
-                Hi, {currentUser.name}
-              </span>
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="text-sm font-sans font-medium text-text-secondary hover:text-white transition-colors duration-200 px-3 py-2 cursor-pointer"
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => onNavigate('sessions')}
+                className="text-sm font-sans font-medium text-text-secondary hover:text-white transition-colors duration-200 px-3 py-2 cursor-pointer"
+              >
+                Sessions
+              </button>
+              <button
+                onClick={() => onNavigate('new-interview')}
+                className="text-sm font-sans font-semibold text-white px-5 py-2.5 rounded-lg neumorphic-button hover:border-white hover:text-[#E5A9A9] flex items-center gap-2 group cursor-pointer"
+              >
+                New Interview
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </button>
               <button
                 onClick={onLogout}
                 className="text-sm font-sans font-medium text-[#E5A9A9] hover:text-[#E5A9A9]/80 transition-colors duration-200 px-4 py-2 cursor-pointer"
@@ -111,18 +129,21 @@ export default function Navbar({ currentUser, onLogout, onNavigate }) {
             transition={{ duration: 0.2 }}
             className="absolute top-full left-0 right-0 bg-[#0A0A0A] border-b border-swiss-grid-border px-6 py-8 flex flex-col gap-6 md:hidden shadow-2xl"
           >
-            <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-base font-sans font-medium text-text-secondary hover:text-white transition-colors duration-200 py-2 border-b border-swiss-grid-border"
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
+            {/* Landing section links — hidden for logged-in users */}
+            {!currentUser && (
+              <div className="flex flex-col gap-4">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-base font-sans font-medium text-text-secondary hover:text-white transition-colors duration-200 py-2 border-b border-swiss-grid-border"
+                  >
+                    {link.name}
+                  </a>
+                ))}
+              </div>
+            )}
 
             <div className="flex flex-col gap-4 mt-4 text-center">
               {currentUser ? (
@@ -130,6 +151,25 @@ export default function Navbar({ currentUser, onLogout, onNavigate }) {
                   <span className="text-base font-sans font-semibold text-white">
                     Hi, {currentUser.name}
                   </span>
+                  <button
+                    onClick={() => { onNavigate('dashboard'); setIsOpen(false); }}
+                    className="w-full text-center text-base font-sans font-medium text-text-secondary hover:text-white py-3 rounded-lg border border-swiss-grid-border hover:bg-surface transition-colors cursor-pointer"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => { onNavigate('sessions'); setIsOpen(false); }}
+                    className="w-full text-center text-base font-sans font-medium text-text-secondary hover:text-white py-3 rounded-lg border border-swiss-grid-border hover:bg-surface transition-colors cursor-pointer"
+                  >
+                    Sessions
+                  </button>
+                  <button
+                    onClick={() => { onNavigate('new-interview'); setIsOpen(false); }}
+                    className="w-full text-center text-base font-sans font-bold text-slate-950 py-3 rounded-lg gradient-primary flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                  >
+                    New Interview
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => {
                       onLogout();
