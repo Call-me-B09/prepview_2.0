@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { auth, signOut } from './firebase.js';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Stats from './components/Stats';
@@ -30,7 +31,12 @@ export default function App() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Firebase signOut failed:", err);
+    }
     localStorage.removeItem('prepview_current_user');
     setCurrentUser(null);
     setCurrentView('landing');
