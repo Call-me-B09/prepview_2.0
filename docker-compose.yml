@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  db-service:
+    build:
+      context: ./Backend/DB_service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./Backend/DB_service/.env
+    restart: always
+
+  ai-service:
+    build:
+      context: ./Backend/AI_service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./Backend/AI_service/.env
+    restart: always
+
+  assembly-service:
+    build:
+      context: ./Backend/Assembly_service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./Backend/Assembly_service/.env
+    restart: always
+
+  tts-service:
+    build:
+      context: ./Backend/TTS_Service
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./Backend/TTS_Service/.env
+    restart: always
+
+  ocr-service:
+    build:
+      context: ./Backend/OCR_Service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./Backend/OCR_Service/.env
+    restart: always
+
+  orchestration-service:
+    build:
+      context: ./Backend/Orchestration_service
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./Backend/Orchestration_service/.env
+    environment:
+      - OCR_SERVICE_URL=http://ocr-service:3000
+      - DB_SERVICE_URL=http://db-service:5000
+      - AI_SERVICE_URL=http://ai-service:5001
+      - ASSEMBLY_SERVICE_URL=http://assembly-service:5002
+      - TTS_SERVICE_URL=http://tts-service:5003
+    restart: always
+    depends_on:
+      - ocr-service
+      - db-service
+      - ai-service
+      - assembly-service
+      - tts-service
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    restart: always
+    depends_on:
+      - orchestration-service
+      - db-service
