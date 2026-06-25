@@ -20,6 +20,15 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "UP" });
+});
+
+app.get("/", (req, res) => {
+    res.status(200).json({ status: "UP" });
+});
+
 app.use("/db",DBroutes);
 
 export default app
