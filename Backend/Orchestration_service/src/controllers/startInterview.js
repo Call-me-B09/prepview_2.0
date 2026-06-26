@@ -18,7 +18,7 @@ const startInterview = async (req, res) => {
             return res.status(400).json({ error: "resume file is required" });
         }
 
-        console.log(`Starting interview orchestration for uid: ${uid}, role: ${role}`);
+        console.log(`[Orchestration] Starting interview orchestration for uid: ${uid}, role: ${role}`);
 
         const resumeText = await extractResumeText(file);
         const sessionId = await createSession(uid, role);
@@ -31,17 +31,10 @@ const startInterview = async (req, res) => {
         // Generate Coding Question dynamically
         let codingQuestion = null;
         try {
-            console.log(`Generating coding challenge for role: ${role}`);
+            console.log(`[Orchestration] Generating coding challenge for role: ${role}`);
             const rawCoding = await generateCodingQuestion(role);
             
             const codingIntroText = `Excellent work on the conceptual questions. For the final part of our session, I have prepared a practical coding problem matching the job role. Please review the description on the left and write your solution in the editor. You can write it in code or pseudo-code.`;
-            let codingAudio = "";
-            try {
-                const audioBuffer = await generateSpeech(codingIntroText);
-                codingAudio = audioBuffer.toString("base64");
-            } catch (ttsErr) {
-                console.error("Failed to generate TTS for coding intro:", ttsErr);
-            }
 
             codingQuestion = {
                 title: rawCoding.title,
@@ -53,39 +46,31 @@ const startInterview = async (req, res) => {
                     "java": "",
                     "pseudocode": ""
                 },
-                audio: codingAudio
+                text: codingIntroText
             };
             await updateSessionFields(sessionId, {
                 codingProblemTitle: codingQuestion.title,
                 codingProblemDescription: codingQuestion.description,
                 codingStarterCode: JSON.stringify(codingQuestion.starterCode)
             });
-            console.log(`Saved coding challenge to session: "${codingQuestion.title}"`);
+            console.log(`[Orchestration] Saved coding challenge to session: "${codingQuestion.title}"`);
         } catch (codingErr) {
-            console.error("Failed to generate coding question:", codingErr);
+            console.error("[Orchestration] Failed to generate coding question:", codingErr);
         }
 
-        // Generate Liffy introduction text and audio
+        // Generate Liffy introduction text
         const nameVal = name || "Candidate";
         const introText = `Hello ${nameVal}! I am Liffy, your AI interviewer today. I have reviewed your resume and generated some personalized questions for the ${role} position. Let's get started!`;
-        let introAudio = "";
-        try {
-            const audioBuffer = await generateSpeech(introText);
-            introAudio = audioBuffer.toString("base64");
-        } catch (ttsErr) {
-            console.error("Failed to generate TTS for introduction:", ttsErr);
-        }
 
-        // Generate TTS audio for each question
-        const questionsWithAudio = await Promise.all(
+        // Generate introduction audio
+        console.log("[Orchestration] Generating introduction audio...");
+        const introAudio = await generateSpeech(introText);
+
+        // Format questions with audio (generated in parallel)
+        console.log("[Orchestration] Generating audio for interview questions...");
+        const questionsList = await Promise.all(
             savedQuestions.map(async (savedQ) => {
-                let audio = "";
-                try {
-                    const audioBuffer = await generateSpeech(savedQ.mainQuestion);
-                    audio = audioBuffer.toString("base64");
-                } catch (ttsErr) {
-                    console.error(`Failed to generate TTS for question ${savedQ._id}:`, ttsErr);
-                }
+                const audio = await generateSpeech(savedQ.mainQuestion);
                 return {
                     questionId: savedQ._id,
                     mainQuestion: savedQ.mainQuestion,
@@ -94,10 +79,10 @@ const startInterview = async (req, res) => {
             })
         );
 
-        console.log("Interview session setup successfully!");
-        console.log("Generated Questions details:");
-        questionsWithAudio.forEach((q, idx) => {
-            console.log(`  Question ${idx + 1}: ID=${q.questionId}, Text="${q.mainQuestion.substring(0, 50)}...", Audio length=${q.audio ? q.audio.length : 0}`);
+        console.log("[Orchestration] Interview session setup successfully!");
+        console.log("[Orchestration] Generated Questions details:");
+        questionsList.forEach((q, idx) => {
+            console.log(`  Question ${idx + 1}: ID=${q.questionId}, Text="${q.mainQuestion.substring(0, 50)}...", Audio Size=${q.audio ? q.audio.length : 0} chars`);
         });
 
         res.status(201).json({
@@ -107,12 +92,12 @@ const startInterview = async (req, res) => {
                 text: introText,
                 audio: introAudio
             },
-            questions: questionsWithAudio,
+            questions: questionsList,
             codingQuestion
         });
 
     } catch (error) {
-        console.error("Error in startInterview orchestration controller:", error);
+        console.error("[Orchestration] Error in startInterview orchestration controller:", error);
         res.status(500).json({
             success: false,
             error: error.message || "Internal server error during interview orchestration"

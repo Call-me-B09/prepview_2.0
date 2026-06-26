@@ -16,19 +16,28 @@ const submitFollowUpAnswer = async (req, res) => {
             return res.status(400).json({ error: "audio file is required" });
         }
 
-        console.log(`Processing follow-up answer for sessionId: ${sessionId}, questionId: ${questionId}`);
+        console.log(`[Orchestration] Processing follow-up answer: Session: ${sessionId}, Question ID: ${questionId}`);
+        if (file) {
+            console.log(`[Orchestration] Received follow-up answer audio file: ${file.originalname}, Size: ${file.size} bytes, MIME: ${file.mimetype}`);
+        } else {
+            console.log("[Orchestration] No audio file received");
+        }
 
         let followUpAnswer = "";
         try {
+            console.log("[Orchestration] Requesting transcription from Assembly service...");
             followUpAnswer = await transcribeAudio(file);
+            console.log(`[Orchestration] Transcription completed. Text: "${followUpAnswer}"`);
         } catch (transcribeErr) {
-            console.warn("Transcription failed or audio was blank, treating as empty response:", transcribeErr.message);
+            console.warn("[Orchestration] Transcription failed or audio was blank, treating as empty response:", transcribeErr.message);
             followUpAnswer = "";
         }
 
+        console.log(`[Orchestration] Saving follow-up answer to DB for Question ID: ${questionId}...`);
         await updateQuestion(questionId, {
             followUpAnswer
         });
+        console.log("[Orchestration] DB updated successfully");
 
         res.status(200).json({
             success: true,

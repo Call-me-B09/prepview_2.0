@@ -88,6 +88,19 @@ export default function NewInterview({ currentUser, onNavigate, onInterviewStart
       }
 
       const data = await res.json();
+      console.log("[Frontend API] startInterview Response Data:", data);
+      console.log("[Frontend API] Session ID created:", data.sessionId);
+      console.log(`[Frontend API] Introduction audio exists: ${!!data.introduction?.audio} (Size: ${data.introduction?.audio ? data.introduction.audio.length : 0} characters)`);
+      if (data.questions) {
+        console.log(`[Frontend API] Questions loaded: ${data.questions.length}`);
+        data.questions.forEach((q, idx) => {
+          console.log(`[Frontend API]   Question ${idx + 1}: ID: ${q.questionId}, Audio exists: ${!!q.audio} (Size: ${q.audio ? q.audio.length : 0} characters)`);
+        });
+      }
+      if (data.codingQuestion) {
+        console.log(`[Frontend API] Coding challenge loaded. Audio exists: ${!!data.codingQuestion.audio} (Size: ${data.codingQuestion.audio ? data.codingQuestion.audio.length : 0} characters)`);
+      }
+
       // Pass session data up so App can navigate to the interview workspace
       if (onInterviewStart) {
         onInterviewStart(data);
@@ -96,7 +109,7 @@ export default function NewInterview({ currentUser, onNavigate, onInterviewStart
         onNavigate('sessions');
       }
     } catch (err) {
-      console.error(err);
+      console.error("[Frontend API] startInterview failed:", err);
       setError(err.message || 'Connection failed. Make sure the Orchestration service is running.');
     } finally {
       setLoading(false);

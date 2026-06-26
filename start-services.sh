@@ -51,7 +51,7 @@ echo "Launching Assembly Service..."
 (cd Backend/Assembly_service && nodemon server.js) 2>&1 | sed -u "s/^/${COLOR_ASSEMBLY}[Assembly Service]${COLOR_RESET} /" &
 
 echo "Launching TTS Service..."
-(cd Backend/TTS_Service && nodemon server.js) 2>&1 | sed -u "s/^/${COLOR_TTS}[TTS Service]${COLOR_RESET} /" &
+(cd Backend/tts_service && nodemon server.js) 2>&1 | sed -u "s/^/${COLOR_TTS}[TTS Service]${COLOR_RESET} /" &
 
 # Wait for all background services to run
 wait

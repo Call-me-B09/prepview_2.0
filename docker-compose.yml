@@ -31,16 +31,6 @@ services:
       - ./Backend/Assembly_service/.env
     restart: always
 
-  tts-service:
-    build:
-      context: ./Backend/TTS_Service
-      dockerfile: Dockerfile
-    ports:
-      - "5003:5003"
-    env_file:
-      - ./Backend/TTS_Service/.env
-    restart: always
-
   ocr-service:
     build:
       context: ./Backend/OCR_Service
@@ -72,6 +62,16 @@ services:
       - ai-service
       - assembly-service
       - tts-service
+
+  tts-service:
+    build:
+      context: ./Backend/tts_service
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./Backend/tts_service/.env
+    restart: always
 
   frontend:
     build:

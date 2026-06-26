@@ -215,46 +215,153 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
     };
   }, [isSpeaking]);
 
-  // Handle playing audio from base64 string
-  const playBase64Audio = (base64String) => {
-    if (!base64String) {
+  // Listen to speechSynthesis voices loading asynchronously in browsers
+  useEffect(() => {
+    const handleVoicesChanged = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log(`[Audio Player] Browser voices loaded. Total count: ${voices.length}`);
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    // Trigger initial voices check if already loaded
+    handleVoicesChanged();
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+    };
+  }, []);
+
+  // Handle playing audio using backend-generated ElevenLabs base64 or browser fallback
+  const speakText = (text, base64Audio) => {
+    if (!text) {
+      console.warn("[Audio Player] Warning: No text content provided to play.");
       setIsSpeaking(false);
       return;
     }
-    try {
-      if (currentAudioRef.current) {
-        currentAudioRef.current.pause();
-        currentAudioRef.current = null;
-      }
-      const audio = new Audio(`data:audio/wav;base64,${base64String}`);
-      currentAudioRef.current = audio;
 
-      audio.addEventListener('play', () => setIsSpeaking(true));
-      audio.addEventListener('ended', () => setIsSpeaking(false));
-      audio.addEventListener('pause', () => setIsSpeaking(false));
-      audio.addEventListener('error', () => {
-        setIsSpeaking(false);
-        console.error("Audio playback error");
-      });
+    // Clean up any ongoing HTML5 audio first
+    if (window.fallbackAudioPlayer) {
+      try {
+        window.fallbackAudioPlayer.pause();
+      } catch (_) {}
+      window.fallbackAudioPlayer = null;
+    }
 
-      audio.play()
-        .then(() => setIsSpeaking(true))
-        .catch(err => {
-          console.error("Playback failed:", err);
+    const playNativeOrFallback = (textToSpeak) => {
+      console.log(`[Audio Player] Initiating fallback speech synthesis for: "${textToSpeak.substring(0, 50)}..."`);
+      
+      const playFallbackTTS = (t) => {
+        console.log("[Audio Player] Attempting fallback Google Translate TTS...");
+        try {
+          const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(t)}`;
+          const audio = new Audio(url);
+          window.fallbackAudioPlayer = audio;
+          audio.onplay = () => {
+            console.log("[Audio Player Event] Fallback TTS started. Liffy is speaking...");
+            setIsSpeaking(true);
+          };
+          audio.onended = () => {
+            console.log("[Audio Player Event] Fallback TTS ended successfully.");
+            setIsSpeaking(false);
+          };
+          audio.onerror = (e) => {
+            console.error("[Audio Player Event] Fallback TTS failed:", e);
+            setIsSpeaking(false);
+          };
+          audio.play().catch(err => {
+            console.error("[Audio Player] Fallback play failed:", err.message);
+            setIsSpeaking(false);
+          });
+        } catch (fallbackErr) {
+          console.error("[Audio Player] Fallback TTS setup failed:", fallbackErr.message);
           setIsSpeaking(false);
+        }
+      };
+
+      try {
+        window.speechSynthesis.cancel();
+        const voices = window.speechSynthesis.getVoices();
+
+        if (voices.length === 0) {
+          console.warn("[Audio Player] No speech synthesis voices available on this browser/OS.");
+          playFallbackTTS(textToSpeak);
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        let selectedVoice = voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('female'));
+        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'en-IN');
+        if (!selectedVoice) selectedVoice = voices.find(v => v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('indian'));
+        if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
+        if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en'));
+
+        if (selectedVoice) {
+          console.log(`[Audio Player] Voice matched: "${selectedVoice.name}" (${selectedVoice.lang})`);
+          utterance.voice = selectedVoice;
+        } else {
+          console.warn("[Audio Player] No suitable English voice found. Using system default voice.");
+        }
+
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        utterance.onstart = () => {
+          console.log("[Audio Player Event] Speech synthesis started. Liffy is speaking...");
+          setIsSpeaking(true);
+        };
+        utterance.onend = () => {
+          console.log("[Audio Player Event] Speech synthesis ended successfully.");
+          setIsSpeaking(false);
+        };
+        utterance.onerror = (e) => {
+          console.error("[Audio Player Event] Speech synthesis error encountered:", e);
+          playFallbackTTS(textToSpeak);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error("[Audio Player] Exception occurred during speech synthesis setup:", err.message);
+        playFallbackTTS(textToSpeak);
+      }
+    };
+
+    if (base64Audio) {
+      console.log(`[Audio Player] Playing backend ElevenLabs audio (size: ${base64Audio.length} characters)...`);
+      try {
+        const audioUrl = base64Audio.startsWith("data:")
+          ? base64Audio
+          : "data:audio/mp3;base64," + base64Audio;
+        const audio = new Audio(audioUrl);
+        window.fallbackAudioPlayer = audio;
+        audio.onplay = () => {
+          console.log("[Audio Player Event] ElevenLabs audio playback started. Liffy is speaking...");
+          setIsSpeaking(true);
+        };
+        audio.onended = () => {
+          console.log("[Audio Player Event] ElevenLabs audio playback ended successfully.");
+          setIsSpeaking(false);
+        };
+        audio.onerror = (e) => {
+          console.error("[Audio Player Event] ElevenLabs audio playback failed, falling back to browser synthesis:", e);
+          playNativeOrFallback(text);
+        };
+        audio.play().catch(err => {
+          console.error("[Audio Player] ElevenLabs audio play failed, falling back to browser synthesis:", err.message);
+          playNativeOrFallback(text);
         });
-    } catch (err) {
-      console.error(err);
-      setIsSpeaking(false);
+      } catch (err) {
+        console.error("[Audio Player] Error creating Audio object for base64 audio, falling back to browser synthesis:", err.message);
+        playNativeOrFallback(text);
+      }
+    } else {
+      playNativeOrFallback(text);
     }
   };
 
   // Play introduction audio on mount
   useEffect(() => {
-    if (phase === 'intro' && introduction?.audio) {
+    if (phase === 'intro' && introduction?.text) {
       // Small timeout to let component render and handle user browser policies
       const timer = setTimeout(() => {
-        playBase64Audio(introduction.audio);
+        speakText(introduction.text, introduction.audio);
       }, 800);
       return () => clearTimeout(timer);
     }
@@ -263,8 +370,12 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
   // Audio cleanup on unmount
   useEffect(() => {
     return () => {
-      if (currentAudioRef.current) {
-        currentAudioRef.current.pause();
+      window.speechSynthesis.cancel();
+      if (window.fallbackAudioPlayer) {
+        try {
+          window.fallbackAudioPlayer.pause();
+        } catch (_) {}
+        window.fallbackAudioPlayer = null;
       }
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
@@ -292,18 +403,31 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
   }, [isRecording]);
 
   const handleStartInterview = () => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current = null;
-      setIsSpeaking(false);
+    window.speechSynthesis.cancel();
+    if (window.fallbackAudioPlayer) {
+      try {
+        window.fallbackAudioPlayer.pause();
+      } catch (_) {}
+      window.fallbackAudioPlayer = null;
     }
+    setIsSpeaking(false);
     setPhase('question_audio');
-    playBase64Audio(currentQuestion.audio);
+    speakText(currentQuestion.mainQuestion, currentQuestion.audio);
   };
 
   const startRecording = async () => {
     setError('');
     audioChunksRef.current = [];
+
+    // Cancel active TTS and fallback audio first
+    window.speechSynthesis.cancel();
+    if (window.fallbackAudioPlayer) {
+      try {
+        window.fallbackAudioPlayer.pause();
+      } catch (_) {}
+      window.fallbackAudioPlayer = null;
+    }
+    setIsSpeaking(false);
 
     // Stop speaking if playing
     if (currentAudioRef.current) {
@@ -379,21 +503,27 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
       }
 
       const data = await res.json();
+      console.log(`[Frontend API] Response from ${endpoint}:`, data);
 
       if (isMain) {
+        console.log(`[Frontend API] main answer processed. Has follow-up question: ${data.hasFollowUp}`);
         if (data.hasFollowUp) {
+          console.log(`[Frontend API] Follow-up question: "${data.followUpQuestion}"`);
+          console.log(`[Frontend API] Follow-up audio field exists: ${!!data.followUpAudio}`);
           setLastAnswerEmpty(false);
           setFollowUpData({
             text: data.followUpQuestion,
             audio: data.followUpAudio
           });
           setPhase('followup_audio');
-          playBase64Audio(data.followUpAudio);
+          speakText(data.followUpQuestion, data.followUpAudio);
         } else {
+          console.log("[Frontend API] No follow-up question generated.");
           setLastAnswerEmpty(true);
           setPhase('ready_next');
         }
       } else {
+        console.log("[Frontend API] Follow-up answer processed. Moving to next question preparation.");
         setLastAnswerEmpty(false);
         setPhase('ready_next');
       }
@@ -409,7 +539,7 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
     if (isLastQuestion) {
       if (codingQuestion) {
         setPhase('coding_challenge');
-        playBase64Audio(codingQuestion.audio);
+        speakText(codingQuestion.text);
       } else {
         triggerEvaluation();
       }
@@ -418,7 +548,7 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
       setCurrentQuestionIdx(nextIdx);
       setFollowUpData(null);
       setPhase('question_audio');
-      playBase64Audio(questions[nextIdx].audio);
+      speakText(questions[nextIdx].mainQuestion, questions[nextIdx].audio);
     }
   };
 
@@ -496,11 +626,11 @@ export default function ActiveInterview({ currentUser, sessionData, onNavigate }
 
   const handleReplay = () => {
     if (phase === 'intro') {
-      playBase64Audio(introduction.audio);
+      speakText(introduction.text, introduction.audio);
     } else if (phase === 'question_audio') {
-      playBase64Audio(currentQuestion.audio);
+      speakText(currentQuestion.mainQuestion, currentQuestion.audio);
     } else if (phase === 'followup_audio') {
-      playBase64Audio(followUpData?.audio);
+      speakText(followUpData?.text, followUpData?.audio);
     }
   };
 
