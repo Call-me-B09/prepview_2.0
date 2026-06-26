@@ -1,4 +1,7 @@
+import { ensureServiceAwake } from "../utils/serviceHelper.js";
+
 export async function transcribeAudio(file) {
+    await ensureServiceAwake(process.env.ASSEMBLY_SERVICE_URL);
     const assemblyUrl = `${process.env.ASSEMBLY_SERVICE_URL}/api/transcribe`;
     
     const formData = new FormData();

@@ -1,4 +1,7 @@
+import { ensureServiceAwake } from "../utils/serviceHelper.js";
+
 export async function createSession(uid, role) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/createSession`;
 
     const response = await fetch(dbUrl, {
@@ -23,6 +26,7 @@ export async function createSession(uid, role) {
 }
 
 export async function saveQuestion(sessionId, mainQuestion) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/createQuestion`;
 
     const response = await fetch(dbUrl, {
@@ -46,6 +50,7 @@ export async function saveQuestion(sessionId, mainQuestion) {
 }
 
 export async function getQuestion(questionId) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/getQuestion/${questionId}`;
 
     const response = await fetch(dbUrl, {
@@ -61,6 +66,7 @@ export async function getQuestion(questionId) {
 }
 
 export async function updateQuestion(questionId, updateData) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateQuestion/${questionId}`;
 
     const response = await fetch(dbUrl, {
@@ -80,6 +86,7 @@ export async function updateQuestion(questionId, updateData) {
 }
 
 export async function getSession(sessionId) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/getSession/${sessionId}`;
 
     const response = await fetch(dbUrl, {
@@ -95,6 +102,7 @@ export async function getSession(sessionId) {
 }
 
 export async function getQuestionsForSession(sessionId) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/getQuestions/${sessionId}`;
 
     const response = await fetch(dbUrl, {
@@ -110,6 +118,7 @@ export async function getQuestionsForSession(sessionId) {
 }
 
 export async function updateSession(sessionId, overallScore, recommendations) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateSession/${sessionId}`;
 
     const response = await fetch(dbUrl, {
@@ -129,6 +138,7 @@ export async function updateSession(sessionId, overallScore, recommendations) {
 }
 
 export async function updateQuestionEvaluation(questionId, evaluationData) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateQuestionEvaluation/${questionId}`;
 
     const response = await fetch(dbUrl, {
@@ -148,6 +158,7 @@ export async function updateQuestionEvaluation(questionId, evaluationData) {
 }
 
 export async function updateSessionFields(sessionId, fields) {
+    await ensureServiceAwake(process.env.DB_SERVICE_URL);
     const dbUrl = `${process.env.DB_SERVICE_URL}/db/updateSession/${sessionId}`;
 
     const response = await fetch(dbUrl, {

@@ -1,4 +1,7 @@
+import { ensureServiceAwake } from "../utils/serviceHelper.js";
+
 export async function generateQuestions(role, resumeText) {
+    await ensureServiceAwake(process.env.AI_SERVICE_URL);
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/generateQuestions`;
 
     const response = await fetch(aiUrl, {
@@ -23,6 +26,7 @@ export async function generateQuestions(role, resumeText) {
 }
 
 export async function generateFollowUp(mainQuestion, mainAnswer) {
+    await ensureServiceAwake(process.env.AI_SERVICE_URL);
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/generateFollowUp`;
 
     const response = await fetch(aiUrl, {
@@ -47,6 +51,7 @@ export async function generateFollowUp(mainQuestion, mainAnswer) {
 }
 
 export async function evaluateQuestion(mainQuestion, mainAnswer, followUpQuestion, followUpAnswer) {
+    await ensureServiceAwake(process.env.AI_SERVICE_URL);
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/evaluateQuestion`;
 
     const response = await fetch(aiUrl, {
@@ -66,6 +71,7 @@ export async function evaluateQuestion(mainQuestion, mainAnswer, followUpQuestio
 }
 
 export async function evaluateSession(questions, role, codingData) {
+    await ensureServiceAwake(process.env.AI_SERVICE_URL);
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/evaluateSession`;
 
     const response = await fetch(aiUrl, {
@@ -85,6 +91,7 @@ export async function evaluateSession(questions, role, codingData) {
 }
 
 export async function generateCodingQuestion(role) {
+    await ensureServiceAwake(process.env.AI_SERVICE_URL);
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/generateCodingQuestion`;
 
     const response = await fetch(aiUrl, {
@@ -105,6 +112,7 @@ export async function generateCodingQuestion(role) {
 }
 
 export async function evaluateCoding(codingProblem, codingLanguage, codingSolution) {
+    await ensureServiceAwake(process.env.AI_SERVICE_URL);
     const aiUrl = `${process.env.AI_SERVICE_URL}/ai/evaluateCoding`;
 
     const response = await fetch(aiUrl, {

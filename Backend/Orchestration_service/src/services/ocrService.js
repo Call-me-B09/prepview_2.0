@@ -1,4 +1,7 @@
+import { ensureServiceAwake } from "../utils/serviceHelper.js";
+
 export async function extractResumeText(file) {
+    await ensureServiceAwake(process.env.OCR_SERVICE_URL);
     const ocrUrl = `${process.env.OCR_SERVICE_URL}/ocr/upload`;
     
     const formData = new FormData();

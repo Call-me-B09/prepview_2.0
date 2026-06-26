@@ -1,4 +1,7 @@
+import { ensureServiceAwake } from "../utils/serviceHelper.js";
+
 export async function generateSpeech(text, voice) {
+    await ensureServiceAwake(process.env.TTS_SERVICE_URL);
     const ttsUrl = `${process.env.TTS_SERVICE_URL}/tts`;
 
     const response = await fetch(ttsUrl, {
