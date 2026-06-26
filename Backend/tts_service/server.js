@@ -61,7 +61,15 @@ const runPiper = (text, piperExe, modelPath) => {
     });
 };
 
-// Health endpoint
+// Health endpoints
+app.get("/", (req, res) => {
+    res.status(200).json({ 
+        status: "UP",
+        engine: "piper",
+        initialized: !!piperConfig
+    });
+});
+
 app.get("/health", (req, res) => {
     res.status(200).json({ 
         status: "UP",
