@@ -78,6 +78,41 @@ app.get("/health", (req, res) => {
     });
 });
 
+// Helper to fetch Google Translate TTS for long text
+const getGoogleTtsAudio = async (text) => {
+    // Split text into chunks of max 200 characters, trying to split on word boundaries
+    const chunks = [];
+    let currentChunk = "";
+    
+    // Split by words
+    const words = text.split(/\s+/);
+    for (const word of words) {
+        if ((currentChunk + " " + word).trim().length <= 200) {
+            currentChunk = (currentChunk + " " + word).trim();
+        } else {
+            if (currentChunk) chunks.push(currentChunk);
+            currentChunk = word;
+        }
+    }
+    if (currentChunk) chunks.push(currentChunk);
+
+    const buffers = [];
+    for (const chunk of chunks) {
+        const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(chunk)}`;
+        const response = await fetch(googleTtsUrl, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Google Translate TTS fallback failed: ${response.status} ${response.statusText}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        buffers.push(Buffer.from(arrayBuffer));
+    }
+    return Buffer.concat(buffers);
+};
+
 // TTS Generation endpoint
 app.post("/tts", async (req, res) => {
     try {
@@ -87,18 +122,28 @@ app.post("/tts", async (req, res) => {
             return res.status(400).json({ error: "text is required" });
         }
 
+        let audioBuffer;
+        let mimeType = "audio/wav";
+
         if (!piperConfig) {
-            console.warn("[TTS Service] Service not fully initialized yet.");
-            return res.status(503).json({ error: "TTS service is initializing, please try again in a few seconds." });
+            console.warn("[TTS Service] Piper config is not initialized yet. Falling back to Google Translate TTS directly.");
+            audioBuffer = await getGoogleTtsAudio(text);
+            mimeType = "audio/mp3";
+        } else {
+            console.log(`[TTS Service] Generating local speech for text: "${text.substring(0, 50)}..."`);
+            try {
+                audioBuffer = await runPiper(text, piperConfig.piperExecutable, piperConfig.modelOnnxPath);
+            } catch (piperError) {
+                console.error("[TTS Service] Piper process execution failed, attempting Google Translate TTS fallback:", piperError.message);
+                audioBuffer = await getGoogleTtsAudio(text);
+                mimeType = "audio/mp3";
+            }
         }
 
-        console.log(`[TTS Service] Generating local speech for text: "${text.substring(0, 50)}..."`);
-
-        const wavBuffer = await runPiper(text, piperConfig.piperExecutable, piperConfig.modelOnnxPath);
-        const base64Audio = wavBuffer.toString("base64");
+        const base64Audio = audioBuffer.toString("base64");
         
-        // Wrap base64 in a correct WAV Data URI
-        const dataUriAudio = `data:audio/wav;base64,${base64Audio}`;
+        // Wrap base64 in a correct Data URI
+        const dataUriAudio = `data:${mimeType};base64,${base64Audio}`;
 
         console.log(`[TTS Service] Audio generated successfully. Size: ${dataUriAudio.length} characters.`);
         res.status(200).json({
@@ -107,7 +152,7 @@ app.post("/tts", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("[TTS Service] Internal error during local speech generation:", error);
+        console.error("[TTS Service] Internal error during speech generation fallback:", error);
         res.status(500).json({
             success: false,
             error: error.message || "Failed to generate speech audio"

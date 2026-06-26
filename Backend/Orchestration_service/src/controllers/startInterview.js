@@ -66,18 +66,17 @@ const startInterview = async (req, res) => {
         console.log("[Orchestration] Generating introduction audio...");
         const introAudio = await generateSpeech(introText);
 
-        // Format questions with audio (generated in parallel)
+        // Format questions with audio (generated sequentially to prevent concurrent memory spikes in TTS service)
         console.log("[Orchestration] Generating audio for interview questions...");
-        const questionsList = await Promise.all(
-            savedQuestions.map(async (savedQ) => {
-                const audio = await generateSpeech(savedQ.mainQuestion);
-                return {
-                    questionId: savedQ._id,
-                    mainQuestion: savedQ.mainQuestion,
-                    audio
-                };
-            })
-        );
+        const questionsList = [];
+        for (const savedQ of savedQuestions) {
+            const audio = await generateSpeech(savedQ.mainQuestion);
+            questionsList.push({
+                questionId: savedQ._id,
+                mainQuestion: savedQ.mainQuestion,
+                audio
+            });
+        }
 
         console.log("[Orchestration] Interview session setup successfully!");
         console.log("[Orchestration] Generated Questions details:");
