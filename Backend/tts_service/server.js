@@ -10,6 +10,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// HTTP Request logging middleware
+app.use((req, res, next) => {
+    const start = Date.now();
+    console.log(`[TTS Service] [HTTP] Incoming Request: ${req.method} ${req.path}`);
+    res.on("finish", () => {
+        const duration = Date.now() - start;
+        console.log(`[TTS Service] [HTTP] Response: ${req.method} ${req.path} - Status: ${res.statusCode} - Duration: ${duration}ms`);
+    });
+    next();
+});
+
 const PORT = process.env.PORT || 5003;
 
 // Global config populated on startup
