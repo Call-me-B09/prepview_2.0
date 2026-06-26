@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Start all PrepView backend services with nodemon",
   "scripts": {
-    "start": "./start-services.sh"
+    "start": "./start-services.sh",
+    "bootstrap": "npm install && for dir in Backend/*/ Frontend; do (cd \"$dir\" && npm install); done"
   }
 }
