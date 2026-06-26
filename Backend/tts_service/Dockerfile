@@ -5,5 +5,5 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run setup
-EXPOSE 5003
+
 CMD ["npm", "start"]
